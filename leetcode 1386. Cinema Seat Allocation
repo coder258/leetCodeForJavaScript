@@ -1,0 +1,63 @@
+
+A cinema has n rows of seats, numbered from 1 to n and there are ten seats in each row, labelled from 1 to 10 as shown in the figure above.
+
+Given the array reservedSeats containing the numbers of seats already reserved, for example, reservedSeats[i] = [3,8] means the seat located in row 3 and labelled with 8 is already reserved.
+
+Return the maximum number of four-person groups you can assign on the cinema seats. A four-person group occupies four adjacent seats in one single row. Seats across an aisle (such as [3,3] and [3,4]) are not considered to be adjacent, but there is an exceptional case on which an aisle split a four-person group, in that case, the aisle split a four-person group in the middle, which means to have two people on each side.
+
+
+Hash Map records location information
+/**
+ * @param {number} n
+ * @param {number[][]} reservedSeats
+ * @return {number}
+ */
+//安排电影院座位
+function maxNumberOfFamilies(n, reservedSeats) {
+  //创建一个Hash Map用于统计每一行被预约的位置
+  const map = new Map([[reservedSeats[0][0], []]]);
+    //遍历reservedSeats数组，将每一行被预约的位置存入一个数组中
+    for(let i = 0; i < reservedSeats.length; i++) {
+        if(map.has(reservedSeats[i][0])) {
+            let cur = map.get(reservedSeats[i][0]);
+              cur.push(reservedSeats[i][1]);
+              map.set(reservedSeats[i][0], cur);
+        } else {
+            //map中之前没有这一行的信息就直接存入
+            map.set(reservedSeats[i][0], [reservedSeats[i][1]]);
+        }
+    }
+
+  //因为每一行最多可以安排2个4人连坐位置，map中已经统计完成每一行的预约信息，n是总行数，用n - map.size即可得到哪一行没有被预约
+  let res = (n - map.size) * 2;
+  //声明count变量用于记录每一行最多可以安排1个4人连坐位置的情况
+  let count = 0;
+  //声明maxCount变量用于记录每一行最多可以安排2个4人连坐位置的情况
+  let maxCount = 2;
+  //根据题意满足一行中没有位置在这个二维数组中的任意一项中出现，即可安排1个4人连坐位置
+  const checkOne = [[2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 8, 9]];
+  //根据题意满足一行中没有位置在这个数组中出现，即可安排2个4人连坐位置
+  const checkTwo = [2, 3, 4, 5, 6, 7, 8, 9];
+    for(const [key, value] of map) {
+        //对map中记录的每一行预约信息进行逐一遍历
+        value.forEach((item) => {
+          //检查是否在checkOne中的每一项中出现
+          for(const val of checkOne) {
+             if(val.every((item) => {return !value.includes(item)})) {
+                count++;
+             }
+          }
+             //如果没有在checkTwo中出现，就说明可以安排2个4人连坐位置
+             if(checkTwo.some((item) => {return value.includes(item);}) === false) {
+                maxCount = 2;
+             } else {
+                maxCount = 1;
+             }
+        });
+        //由于特殊情况下count可能重复统计且一行中最多安排2个4人连坐位置，所以每次累加最小的那个即可
+        res += count < maxCount ? count : maxCount;
+        //每次循环都要对count重新清0
+        count = 0;
+    }
+  return res;
+};
